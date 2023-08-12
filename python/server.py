@@ -4,6 +4,7 @@ from absl import flags, app
 
 from fulfillment.scanner import Fulfiller
 from utils.config import Config
+from utils.discord import send_hook
 
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dotenv', '', 'Alternate dotenv file to use instead of .env')
@@ -19,7 +20,8 @@ def main(_: list[str]):
     indexer = Fulfiller(client, config.alert_hook_url)
 
     executor = ThreadPoolExecutor()
-    print('starting indexer')
+    print('starting fulfiller')
+    send_hook(config.alert_hook_url, f'Starting fulfiller for {config.chain_id} using {config.account.address}')
     executor.submit(indexer.start_scan, last_block)
 
     # TODO:

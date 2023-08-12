@@ -37,7 +37,8 @@ class Fulfiller(object):
 
                 fa = {'fromBlock': last_block + 1, 'toBlock': current_block}
                 print(f"scanning from {fa}")
-                requested = self.client.vrf_contract.events.RandomWordsRequested.create_filter(fa).get_all_entries()
+                requested = self.client.vrf_contract.events.RandomWordsRequested().create_filter(
+                    fromBlock=last_block + 1, toBlock=current_block).get_all_entries()
 
                 for pending in requested:
                     self.fulfill_event(pending, test_run=first_pass)
@@ -66,8 +67,10 @@ class Fulfiller(object):
                 print(f"catchup from {fa}")
 
                 # Fetch data for both sets of events
-                local_r = self.client.vrf_contract.events.RandomWordsRequested.create_filter(fa).get_all_entries()
-                local_f = self.client.vrf_contract.events.RandomWordsFulfilled.create_filter(fa).get_all_entries()
+                local_r = self.client.vrf_contract.events.RandomWordsRequested().create_filter(
+                    fromBlock=current_start + 1, toBlock=current_end).get_all_entries()
+                local_f = self.client.vrf_contract.events.RandomWordsFulfilled().create_filter(
+                    fromBlock=current_start + 1, toBlock=current_end).get_all_entries()
 
                 # We got them both successfully so update our bulk storage
                 requested += local_r
@@ -99,4 +102,8 @@ class Fulfiller(object):
             'numWords': args['numWords'],
             'sender': args['sender'],
         }
-        self.client.fulfill_random_words(request_id, randomness, rc, do_call=test_run)
+        print(f'fulfilling {request_id}')
+        tx_hash = self.client.fulfill_random_words(request_id, randomness, rc, do_call=test_run)
+        if tx_hash:
+            result = self.client.get_receipt_by_hash(tx_hash)
+            send_hook(self.alert_url, f'fulfilled {request_id} with status {result["status"]} tx: {tx_hash}')

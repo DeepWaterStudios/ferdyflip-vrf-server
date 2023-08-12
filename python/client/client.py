@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 from eth_account.datastructures import SignedTransaction
 from eth_account.signers.local import LocalAccount
@@ -105,7 +105,14 @@ class L2ChainVrfClient(L2ChainClient):
         super().__init__(w3, account)
         self.vrf_contract = self.contract(address, VRF_ABI)
 
-    def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment, do_call=False) -> HexStr:
+    def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment, do_call=False) -> Optional[
+        HexStr]:
         cf = self.vrf_contract.functions.fulfillRandomWords(request_id, randomness, rc)
+        if do_call:
+            try:
+                cf.call({'from': self.account.address})
+            except Exception as ex:
+                print('Call failed, skipping:', ex)
+                return None
         tx = self.build_contract_tx(cf)
         return self.sign_and_send_tx(tx)

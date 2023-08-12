@@ -10,7 +10,7 @@ from web3 import Web3
 
 from client.client import L2ChainVrfClient
 from client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id
-from utils.keys import obfuscate_string
+from utils.keys import deobfuscate_string
 
 
 class Config(object):
@@ -44,7 +44,7 @@ class Config(object):
 
     @property
     def private_key(self) -> str:
-        return obfuscate_string(self.obfuscated_key)
+        return deobfuscate_string(self.obfuscated_key)
 
     @property
     def account(self) -> LocalAccount:
