@@ -5,12 +5,12 @@ from typing import Optional
 
 from web3.types import BlockIdentifier, EventData
 
-from client.client import BaseChainVrfClient
+from client.client import L2ChainVrfClient
 from utils.discord import send_hook
 
 
 class Fulfiller(object):
-    def __init__(self, client: BaseChainVrfClient, alert_url: Optional[str]):
+    def __init__(self, client: L2ChainVrfClient, alert_url: Optional[str]):
         self.client = client
         self.alert_url = alert_url
 

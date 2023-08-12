@@ -9,11 +9,11 @@ from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.types import Nonce, TxParams, TxReceipt, BlockData
 
-from contracts.abi import VRF_ABI
+from client.abi import VRF_ABI
 
 
-class BaseChainClient(object):
-    """Web3 client for Base."""
+class L2ChainClient(object):
+    """Web3 client for an L2."""
 
     def __init__(self, w3: Web3, account: LocalAccount):
         self.w3 = w3
@@ -98,8 +98,8 @@ class RequestCommitment(TypedDict):
     sender: ChecksumAddress
 
 
-class BaseChainVrfClient(BaseChainClient):
-    """Web3 client for Base with helpers for VRF."""
+class L2ChainVrfClient(L2ChainClient):
+    """Web3 client for an L2 with helpers for VRF."""
 
     def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress):
         super().__init__(w3, account)

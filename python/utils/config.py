@@ -4,8 +4,13 @@ import os
 from typing import Optional
 
 from dotenv import dotenv_values
+from eth_account import Account
+from eth_account.signers.local import LocalAccount
+from web3 import Web3
 
-from client.endpoints import CHAIN_ID_TO_RPC
+from client.client import L2ChainVrfClient
+from client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id
+from utils.keys import obfuscate_string
 
 
 class Config(object):
@@ -22,3 +27,28 @@ class Config(object):
             raise ValueError(f'Unexpected chain id value: {self.chain_id}')
 
         self.alert_hook_url = self.config.get('ALERT_HOOK_URL')
+
+        self.obfuscated_key = self.config.get('OBFUSCATED_KEY')
+        if not self.obfuscated_key:
+            raise ValueError('Expected OBFUSCATED_KEY to be set')
+
+        try:
+            print(f'Loaded {self.account.address}')
+        except Exception as ex:
+            raise ValueError('Expected OBFUSCATED_KEY to resolve to an account') from ex
+
+        try:
+            self.vrf_address = Web3.to_checksum_address(self.config.get('VRF_ADDRESS'))
+        except Exception as ex:
+            raise ValueError('Expected VRF_ADDRESS to resolve to an address') from ex
+
+    @property
+    def private_key(self) -> str:
+        return obfuscate_string(self.obfuscated_key)
+
+    @property
+    def account(self) -> LocalAccount:
+        return Account.from_key(self.private_key)
+
+    def create_client(self) -> L2ChainVrfClient:
+        return L2ChainVrfClient(make_web3_for_chain_id(self.chain_id), self.account, self.vrf_address)
