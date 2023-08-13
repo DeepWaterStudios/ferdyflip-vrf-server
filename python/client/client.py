@@ -4,9 +4,11 @@ from eth_account.datastructures import SignedTransaction
 from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress, BlockNumber
 from eth_typing.encoding import HexStr
+from eth_utils import event_abi_to_log_topic
+from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
-from web3.contract.contract import ContractFunction
+from web3.contract.contract import ContractFunction, ContractEvent
 from web3.types import Nonce, TxParams, TxReceipt, BlockData
 
 from client.abi import VRF_ABI
@@ -104,15 +106,23 @@ class L2ChainVrfClient(L2ChainClient):
     def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress):
         super().__init__(w3, account)
         self.vrf_contract = self.contract(address, VRF_ABI)
+        self.requested_event = self.vrf_contract.events.RandomWordsRequested()
+        self.fulfilled_event = self.vrf_contract.events.RandomWordsFulfilled()
+        self.requested_topic = HexBytes(event_abi_to_log_topic(self.requested_event.abi))
+        self.fulfilled_topic = HexBytes(event_abi_to_log_topic(self.fulfilled_event.abi))
 
-    def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment, do_call=False) -> Optional[
-        HexStr]:
+    def filter_for_events(self, from_block: int, to_block: int) -> tuple[list[ContractEvent], list[ContractEvent]]:
+        event_filter = self.w3.eth.filter({
+            'fromBlock': from_block,
+            'toBlock': to_block,
+            'address': self.vrf_contract.address,
+        })
+        all_events: list[ContractEvent] = event_filter.get_all_entries()
+        requested_events = [event for event in all_events if event['topics'][0] == self.requested_topic]
+        fulfilled_events = [event for event in all_events if event['topics'][0] == self.fulfilled_topic]
+        return requested_events, fulfilled_events
+
+    def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment) -> Optional[HexStr]:
         cf = self.vrf_contract.functions.fulfillRandomWords(request_id, randomness, rc)
-        if do_call:
-            try:
-                cf.call({'from': self.account.address})
-            except Exception as ex:
-                print('Call failed, skipping:', ex)
-                return None
         tx = self.build_contract_tx(cf)
         return self.sign_and_send_tx(tx)
