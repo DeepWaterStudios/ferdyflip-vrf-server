@@ -11,7 +11,9 @@ CHAIN_ID_TO_RPC = {
     # 84531: 'https://base-goerli.blockpi.network/v1/rpc/public',
     # 84531: 'https://base-goerli.public.blastapi.io',
 
-    84531: 'https://1rpc.io/base-goerli',
+    # 84531: 'https://1rpc.io/base-goerli', # newfilter fails?
+    # 84531: 'wss://1rpc.io/base-goerli', # doesn't work
+    84531: 'https://winter-still-frost.base-goerli.discover.quiknode.pro/056b8b85dc629cce6f299d5e8f70394af15ee8b0/'
 }
 
 
