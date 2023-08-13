@@ -28,7 +28,7 @@ class Fulfiller(object):
         first_pass = True
         while True:
             try:
-                time.sleep(.5)
+                time.sleep(1)  # TODO: should be configurable
                 current_block = self.client.get_latest_block_number()
 
                 # No progress since last poll, do nothing
@@ -103,7 +103,6 @@ class Fulfiller(object):
             'sender': args['sender'],
         }
         print(f'fulfilling {request_id}')
-        tx_hash = self.client.fulfill_random_words(request_id, randomness, rc, do_call=test_run)
-        if tx_hash:
-            result = self.client.get_receipt_by_hash(tx_hash)
-            send_hook(self.alert_url, f'fulfilled {request_id} with status {result["status"]} tx: {tx_hash}')
+        tx_hash = self.client.fulfill_random_words(request_id, randomness, rc)
+        result = self.client.get_receipt_by_hash(tx_hash)
+        send_hook(self.alert_url, f'fulfilled {request_id} with status {result["status"]} tx: {tx_hash}')
