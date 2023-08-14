@@ -1,5 +1,6 @@
-from typing import TypedDict, Optional
+from typing import TypedDict, Optional, Iterable
 
+import web3.logs
 from eth_account.datastructures import SignedTransaction
 from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress, BlockNumber
@@ -9,7 +10,7 @@ from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction, ContractEvent
-from web3.types import Nonce, TxParams, TxReceipt, BlockData
+from web3.types import Nonce, TxParams, TxReceipt, BlockData, EventData
 
 from client.abi import VRF_ABI
 
@@ -106,20 +107,21 @@ class L2ChainVrfClient(L2ChainClient):
     def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress):
         super().__init__(w3, account)
         self.vrf_contract = self.contract(address, VRF_ABI)
-        self.requested_event = self.vrf_contract.events.RandomWordsRequested()
-        self.fulfilled_event = self.vrf_contract.events.RandomWordsFulfilled()
+        self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
+        self.fulfilled_event: ContractEvent = self.vrf_contract.events.RandomWordsFulfilled()
         self.requested_topic = HexBytes(event_abi_to_log_topic(self.requested_event.abi))
         self.fulfilled_topic = HexBytes(event_abi_to_log_topic(self.fulfilled_event.abi))
 
-    def filter_for_events(self, from_block: int, to_block: int) -> tuple[list[ContractEvent], list[ContractEvent]]:
-        event_filter = self.w3.eth.filter({
+    def get_vrf_logs(self, from_block: int, to_block: int) -> tuple[Iterable[EventData], Iterable[EventData]]:
+        logs = self.w3.eth.get_logs({
             'fromBlock': from_block,
             'toBlock': to_block,
             'address': self.vrf_contract.address,
         })
-        all_events: list[ContractEvent] = event_filter.get_all_entries()
-        requested_events = [event for event in all_events if event['topics'][0] == self.requested_topic]
-        fulfilled_events = [event for event in all_events if event['topics'][0] == self.fulfilled_topic]
+        requested_logs = [log for log in logs if log['topics'][0] == self.requested_topic]
+        fulfilled_logs = [log for log in logs if log['topics'][0] == self.fulfilled_topic]
+        requested_events = self.requested_event.process_receipt({'logs': requested_logs}, errors=web3.logs.STRICT)
+        fulfilled_events = self.fulfilled_event.process_receipt({'logs': fulfilled_logs}, errors=web3.logs.STRICT)
         return requested_events, fulfilled_events
 
     def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment) -> Optional[HexStr]:

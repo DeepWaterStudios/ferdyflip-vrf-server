@@ -25,7 +25,6 @@ class Fulfiller(object):
             self.catchup_mode(run_from_block, current_block)
             last_block = current_block
 
-        first_pass = True
         while True:
             try:
                 time.sleep(1)  # TODO: should be configurable
@@ -35,17 +34,16 @@ class Fulfiller(object):
                 if current_block == last_block:
                     continue
 
-                fa = {'fromBlock': last_block + 1, 'toBlock': current_block}
-                print(f"scanning from {fa}")
-                requested = self.client.vrf_contract.events.RandomWordsRequested().create_filter(
-                    fromBlock=last_block + 1, toBlock=current_block).get_all_entries()
+                print(f"scanning from {last_block +1} to {current_block}")
+                requested, fulfilled = self.client.get_vrf_logs(last_block + 1, current_block)
+                fulfilled_ids = [x['args']['requestId'] for x in fulfilled]
+                pending_requested = [x for x in requested if x['args']['requestId'] not in fulfilled_ids]
 
-                for pending in requested:
-                    self.fulfill_event(pending, test_run=first_pass)
+                for pending in pending_requested:
+                    self.fulfill_event(pending)
 
                 # If we're here, the tx for the block range committed successfully.
                 last_block = current_block
-                first_pass = False
 
             except Exception as e:
                 traceback.print_exc()
@@ -67,10 +65,7 @@ class Fulfiller(object):
                 print(f"catchup from {fa}")
 
                 # Fetch data for both sets of events
-                local_r = self.client.vrf_contract.events.RandomWordsRequested().create_filter(
-                    fromBlock=current_start + 1, toBlock=current_end).get_all_entries()
-                local_f = self.client.vrf_contract.events.RandomWordsFulfilled().create_filter(
-                    fromBlock=current_start + 1, toBlock=current_end).get_all_entries()
+                local_r, local_f = self.client.get_vrf_logs(current_start + 1, current_end)
 
                 # We got them both successfully so update our bulk storage
                 requested += local_r
@@ -91,7 +86,7 @@ class Fulfiller(object):
         for pending in pending_requested:
             self.fulfill_event(pending)
 
-    def fulfill_event(self, event: EventData, test_run=False):
+    def fulfill_event(self, event: EventData):
         args = event['args']
         request_id = args['requestId']
         randomness = secrets.randbelow(2 ** 256)
