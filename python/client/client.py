@@ -73,7 +73,7 @@ class L2ChainClient(object):
         return self.w3.eth.get_block('latest')
 
     def get_latest_block_number(self) -> BlockNumber:
-        return self.get_latest_block()['number']
+        return self.w3.eth.get_block_number()
 
     def next_nonce(self) -> Nonce:
         """Requests the next nonce from the server."""
