@@ -21,17 +21,7 @@ cache_chain_id_middleware = construct_simple_cache_middleware(
 
 CHAIN_ID_TO_RPC = {
     8453: 'https://mainnet.base.org',
-    # 84531: 'https://goerli.base.org',
-
-    # 8453: 'wss://mainnet.base.org',
-    # 84531: 'wss://goerli.base.org',
-
-    # 84531: 'https://base-goerli.blockpi.network/v1/rpc/public',
-    # 84531: 'https://base-goerli.public.blastapi.io',
-
-    # 84531: 'https://1rpc.io/base-goerli', # newfilter fails?
-    # 84531: 'wss://1rpc.io/base-goerli', # doesn't work
-    84531: 'https://winter-still-frost.base-goerli.discover.quiknode.pro/056b8b85dc629cce6f299d5e8f70394af15ee8b0/'
+    84531: 'https://goerli.base.org',
 }
 
 
