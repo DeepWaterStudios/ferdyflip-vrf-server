@@ -26,7 +26,8 @@ class L2ChainClient(object):
         self.account = account
 
         self.chain_id = self.w3.eth.chain_id
-        self.gas_price_in_gwei = 0.001
+        self.max_gas_price_in_gwei = 2
+        self.priority_fee_in_gwei = 0.001
         self.gas_limit = 1_500_000
 
     ####################
@@ -37,8 +38,10 @@ class L2ChainClient(object):
         """Build a basic transaction."""
         tx: TxParams = {
             'chainId': self.chain_id,
+            'type': 0x2,
+            'maxFeePerGas': Web3.to_wei(self.max_gas_price_in_gwei, 'gwei'),
+            'maxPriorityFeePerGas': Web3.to_wei(self.priority_fee_in_gwei, 'gwei'),
             'gas': self.gas_limit,
-            'gasPrice': Web3.to_wei(self.gas_price_in_gwei, 'gwei'),
             'nonce': self.next_nonce(),
         }
         return tx
