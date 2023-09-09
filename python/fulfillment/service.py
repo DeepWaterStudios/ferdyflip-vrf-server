@@ -43,16 +43,23 @@ class Fulfiller(object):
                 time.sleep(.5)
                 current_block = self.client.get_latest_block_number()
 
-                # No progress since last poll, do nothing
-                if current_block == last_block:
+                # No progress since last poll, do nothing.
+                # Or, alternatively, the Base RPC is legitimately being retarded and decided go back 1k blocks.
+                if current_block <= last_block:
                     continue
 
                 # Base testnet seemed kind of flaky in terms of supplying events accurately, so I shifted to fetching
                 # the last 50 blocks and using a local cache of fulfilled IDs to prevent duplicate fulfills.
                 scan_block = last_block - 50
 
-                print(f"scanning from {scan_block} to {current_block}")
-                requested, fulfilled = self.client.get_vrf_logs(scan_block, current_block)
+                # Account for more weirdness. Can only scan for 2k blocks, but the start block might have been messed
+                # up when it was fetched from Base.
+                scan_end_block = min(scan_block + 1900, current_block)
+
+                print(f"scanning from {scan_block} to {scan_end_block}")
+                if scan_end_block != current_block:
+                    print(f'Originally used {current_block} as end block')
+                requested, fulfilled = self.client.get_vrf_logs(scan_block, scan_end_block)
 
                 # If we saw fulfillments in the block, strip out matching requests for fulfillment.
                 fulfilled_ids = [x['args']['requestId'] for x in fulfilled]
@@ -65,7 +72,7 @@ class Fulfiller(object):
                 # This server could be running in 'delay' mode. If it is, we want to exclude events that are newer
                 # than the start of the lookback window. The primary fulfiller will pick those up. This is just to add
                 # some extra reliability in fulfillment.
-                delay_block = current_block - self.delay_blocks
+                delay_block = scan_end_block - self.delay_blocks
                 pending_requested = [x for x in pending_requested if x['blockNumber'] <= delay_block]
 
                 print(f'fetched events: {len(requested)} / {len(fulfilled)} / {len(pending_requested)}')
@@ -74,7 +81,7 @@ class Fulfiller(object):
                     self.submit_fulfill_event(pending)
 
                 # The TX haven't finished submitting yet, but they're out for processing, so keep going.
-                last_block = current_block
+                last_block = scan_end_block
 
             except Exception as e:
                 traceback.print_exc()
