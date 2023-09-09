@@ -45,6 +45,8 @@ class Config(object):
         except Exception as ex:
             raise ValueError('Expected VRF_ADDRESS to resolve to an address') from ex
 
+        self.rpc_endpoint = self.config.get('RPC_ENDPOINT', None)
+
     @property
     def private_key(self) -> str:
         return deobfuscate_string(self.obfuscated_key)
@@ -54,4 +56,5 @@ class Config(object):
         return Account.from_key(self.private_key)
 
     def create_client(self) -> L2ChainVrfClient:
-        return L2ChainVrfClient(make_web3_for_chain_id(self.chain_id), self.account, self.vrf_address)
+        return L2ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
+                                self.account, self.vrf_address)

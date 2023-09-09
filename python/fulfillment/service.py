@@ -46,6 +46,7 @@ class Fulfiller(object):
                 # No progress since last poll, do nothing.
                 # Or, alternatively, the Base RPC is legitimately being retarded and decided go back 1k blocks.
                 if current_block <= last_block:
+                    time.sleep(.5)
                     continue
 
                 # Base testnet seemed kind of flaky in terms of supplying events accurately, so I shifted to fetching

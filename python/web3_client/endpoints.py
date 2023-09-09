@@ -1,4 +1,4 @@
-from typing import cast
+from typing import cast, Optional
 
 from web3 import Web3
 from web3.middleware import geth_poa_middleware, construct_simple_cache_middleware
@@ -48,6 +48,6 @@ def make_complete_web3(node_uri: str) -> Web3:
     return w3
 
 
-def make_web3_for_chain_id(chain_id: int) -> Web3:
+def make_web3_for_chain_id(chain_id: int, rpc_endpoint_override: Optional[str] = None) -> Web3:
     """Given a chain id, creates a web3 properly configured."""
-    return make_complete_web3(CHAIN_ID_TO_RPC[chain_id])
+    return make_complete_web3(rpc_endpoint_override or CHAIN_ID_TO_RPC[chain_id])
