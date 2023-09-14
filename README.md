@@ -48,3 +48,9 @@ We use the Dockerfile to build a container, push it to AWS ECR, and deploy two i
 
 One instance is deployed in the 'immediate' mode to minimize time to fulfillments, the other is deployed in a 'delay'
 mode to ensure that if a fulfillment somehow gets dropped by the immediate fulfiller, the other one will pick it up.
+
+## Node
+
+For Base, although the code here uses the public RPC, we basically are required to use a private RPC because it's so
+flaky. For Avax, we use a private RPC because it seems to have better performance. Either way, the RPC endpoints aren't
+committed here, they're supplied by ENV vars.
