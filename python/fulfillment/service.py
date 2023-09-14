@@ -37,16 +37,18 @@ class Fulfiller(object):
         print("Starting scan from", run_from_block)
         last_block = run_from_block
 
+        # We don't need to poll as quickly on the backup fulfiller. This conserves credits on paid plans =(
+        # This time might need to be adjusted down for Arb, but it's fine for Base/Avax.
+        sleep_time = 6 if self.delay_blocks else .5
+
         while True:
             try:
-                # This might need to change for some chains (arb?). But it's fine for Base.
-                time.sleep(.5)
+                time.sleep(sleep_time)
                 current_block = self.client.get_latest_block_number()
 
                 # No progress since last poll, do nothing.
-                # Or, alternatively, the Base RPC is legitimately being retarded and decided go back 1k blocks.
                 if current_block <= last_block:
-                    time.sleep(.5)
+                    time.sleep(sleep_time * 2)
                     continue
 
                 # Base testnet seemed kind of flaky in terms of supplying events accurately, so I shifted to fetching
