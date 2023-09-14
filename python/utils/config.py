@@ -9,8 +9,8 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
 from utils.keys import deobfuscate_string
-from web3_client.client import L2ChainVrfClient
-from web3_client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id
+from web3_client.client import ChainVrfClient
+from web3_client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id, CHAIN_ID_TO_MAX_GAS
 
 
 class Config(object):
@@ -55,6 +55,8 @@ class Config(object):
     def account(self) -> LocalAccount:
         return Account.from_key(self.private_key)
 
-    def create_client(self) -> L2ChainVrfClient:
-        return L2ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
-                                self.account, self.vrf_address)
+    def create_client(self) -> ChainVrfClient:
+        return ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
+                              self.account,
+                              self.vrf_address,
+                              CHAIN_ID_TO_MAX_GAS[self.chain_id])

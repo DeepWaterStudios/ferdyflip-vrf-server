@@ -23,8 +23,26 @@ cache_chain_id_middleware = construct_simple_cache_middleware(
 
 # Every supported chain needs a mapping from chain id to rpc endpoint.
 CHAIN_ID_TO_RPC = {
+    # Base Mainnet
     8453: 'https://mainnet.base.org',
+    # Base Testnet
     84531: 'https://goerli.base.org',
+    # Avax Mainnet
+    43114: 'https://api.avax.network/ext/bc/C/rpc',
+    # Avax testnet
+    43113: 'https://api.avax-test.network/ext/bc/C/rpc',
+}
+
+# Every supported chain needs a mapping from chain id to max gas in gwei.
+CHAIN_ID_TO_MAX_GAS = {
+    # Base Mainnet
+    8453: 2,
+    # Base Testnet
+    84531: 2,
+    # Avax Mainnet
+    43114: 40,
+    # Avax testnet
+    43113: 40,
 }
 
 

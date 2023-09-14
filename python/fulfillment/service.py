@@ -7,7 +7,7 @@ from typing import Optional
 from web3.types import EventData
 
 from utils.discord import send_hook
-from web3_client.client import L2ChainVrfClient
+from web3_client.client import ChainVrfClient
 
 
 class Fulfiller(object):
@@ -16,7 +16,7 @@ class Fulfiller(object):
     Will operate in 'catch up' mode at first if the start block is too far in the past.
     """
 
-    def __init__(self, client: L2ChainVrfClient, alert_url: Optional[str], fulfillment_url: Optional[str],
+    def __init__(self, client: ChainVrfClient, alert_url: Optional[str], fulfillment_url: Optional[str],
                  delay_blocks: int):
         self.client = client
         self.alert_url = alert_url

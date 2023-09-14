@@ -10,23 +10,23 @@ from hexbytes import HexBytes
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction, ContractEvent
-from web3.types import Nonce, TxParams, TxReceipt, BlockData, EventData
+from web3.types import Nonce, TxParams, TxReceipt, EventData
 
 from web3_client.abi import VRF_ABI
 
 
-class L2ChainClient(object):
-    """Web3 client for an L2.
+class ChainClient(object):
+    """Web3 client.
 
     These settings might need to be modified per chain? Fine for now.
     """
 
-    def __init__(self, w3: Web3, account: LocalAccount):
+    def __init__(self, w3: Web3, account: LocalAccount, max_gas_price_in_gwei: int):
         self.w3 = w3
         self.account = account
 
         self.chain_id = self.w3.eth.chain_id
-        self.max_gas_price_in_gwei = 2
+        self.max_gas_price_in_gwei = max_gas_price_in_gwei
         self.priority_fee_in_gwei = 0.001
         self.gas_limit = 1_500_000
 
@@ -105,8 +105,8 @@ class RequestCommitment(TypedDict):
     sender: ChecksumAddress
 
 
-class L2ChainVrfClient(L2ChainClient):
-    """Web3 client for an L2 with helpers for VRF.
+class ChainVrfClient(ChainClient):
+    """Web3 client with helpers for VRF.
 
     Also caches the nonce locally and increments it when a tx is sent. This allows for multiple outstanding
     fulfillments at the same time.
@@ -115,8 +115,8 @@ class L2ChainVrfClient(L2ChainClient):
     value when tx are in flight.
     """
 
-    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress):
-        super().__init__(w3, account)
+    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: int):
+        super().__init__(w3, account, max_gas_price_in_gwei)
         self.vrf_contract = self.contract(address, VRF_ABI)
         self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
         self.fulfilled_event: ContractEvent = self.vrf_contract.events.RandomWordsFulfilled()
