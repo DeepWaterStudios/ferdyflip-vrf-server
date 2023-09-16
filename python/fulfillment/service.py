@@ -87,8 +87,11 @@ class Fulfiller(object):
                 last_block = scan_end_block
 
             except Exception as e:
-                traceback.print_exc()
-                send_hook(self.alert_url, e)
+                if 'Client Error' in str(e) and 'goerli.base' in str(e):
+                    print('suppressing spurious transient base testnet error')
+                else:
+                    traceback.print_exc()
+                    send_hook(self.alert_url, e)
                 time.sleep(2)
 
     def submit_fulfill_event(self, event: EventData):
