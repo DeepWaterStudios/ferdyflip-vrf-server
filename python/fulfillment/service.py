@@ -39,7 +39,7 @@ class Fulfiller(object):
 
         # We don't need to poll as quickly on the backup fulfiller. This conserves credits on paid plans =(
         # This time might need to be adjusted down for Arb, but it's fine for Base/Avax.
-        sleep_time = 6 if self.delay_blocks else .5
+        sleep_time = 6 if self.delay_blocks else 1.2
 
         while True:
             try:
