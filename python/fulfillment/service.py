@@ -17,11 +17,12 @@ class Fulfiller(object):
     """
 
     def __init__(self, client: ChainVrfClient, alert_url: Optional[str], fulfillment_url: Optional[str],
-                 delay_blocks: int):
+                 delay_blocks: int, poll_delay: float):
         self.client = client
         self.alert_url = alert_url
         self.fulfillment_url = fulfillment_url
         self.delay_blocks = delay_blocks
+        self.poll_delay = poll_delay
 
         # Limit outstanding fulfillment tx to 5, which should be plenty.
         self.executor = ThreadPoolExecutor(max_workers=5)
@@ -39,7 +40,7 @@ class Fulfiller(object):
 
         # We don't need to poll as quickly on the backup fulfiller. This conserves credits on paid plans =(
         # This time might need to be adjusted down for Arb, but it's fine for Base/Avax.
-        sleep_time = 6 if self.delay_blocks else 1.2
+        sleep_time = self.poll_delay * 4 if self.delay_blocks else self.poll_delay
 
         while True:
             try:

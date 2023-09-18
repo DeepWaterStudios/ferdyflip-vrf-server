@@ -46,6 +46,7 @@ class Config(object):
             raise ValueError('Expected VRF_ADDRESS to resolve to an address') from ex
 
         self.rpc_endpoint = self.config.get('RPC_ENDPOINT', None)
+        self.poll_delay = float(self.config.get('POLL_DELAY', 1.5))
 
     @property
     def private_key(self) -> str:

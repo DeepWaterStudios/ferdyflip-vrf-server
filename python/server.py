@@ -23,7 +23,8 @@ def main(_: list[str]):
     executor = ThreadPoolExecutor()
 
     client = config.create_client()
-    indexer = Fulfiller(client, config.alert_hook_url, config.fulfillment_hook_url, config.delay_blocks)
+    indexer = Fulfiller(client, config.alert_hook_url, config.fulfillment_hook_url,
+                        config.delay_blocks, config.poll_delay)
 
     # For buffer, go back 2K blocks. This shouldn't take any time to catch up. The 1900 is because there's a buffer
     # for the -50 block lookback.
