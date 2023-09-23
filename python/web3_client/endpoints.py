@@ -33,6 +33,36 @@ CHAIN_ID_TO_RPC = {
     43113: 'https://api.avax-test.network/ext/bc/C/rpc',
 }
 
+CHAIN_ID_TO_RPC_LIST = {
+    # Base Mainnet
+    8453: [
+        'https://mainnet.base.org',
+        'https://base-mainnet.public.blastapi.io',
+        'https://base.publicnode.com',
+    ],
+    # Base Testnet
+    84531: [
+        'https://goerli.base.org',
+        'https://base-goerli.publicnode.com',
+        'https://base-goerli.blockpi.network/v1/rpc/public',
+    ],
+    # Avax Mainnet
+    43114: [
+        'https://api.avax.network/ext/bc/C/rpc',
+        'https://rpc.ankr.com/avalanche',
+        'https://avalanche.blockpi.network/v1/rpc/public',
+        'https://avalanche-c-chain.publicnode.com',
+        'https://ava-mainnet.public.blastapi.io/ext/bc/C/rpc',
+        'https://1rpc.io/avax/c',
+    ],
+    # Avax testnet
+    43113: [
+        'https://api.avax-test.network/ext/bc/C/rpc',
+        'https://rpc.ankr.com/avalanche_fuji',
+        'https://avalanche-fuji.blockpi.network/v1/rpc/public',
+    ],
+}
+
 # Every supported chain needs a mapping from chain id to max gas in gwei.
 CHAIN_ID_TO_MAX_GAS = {
     # Base Mainnet
@@ -69,3 +99,16 @@ def make_complete_web3(node_uri: str) -> Web3:
 def make_web3_for_chain_id(chain_id: int, rpc_endpoint_override: Optional[str] = None) -> Web3:
     """Given a chain id, creates a web3 properly configured."""
     return make_complete_web3(rpc_endpoint_override or CHAIN_ID_TO_RPC[chain_id])
+
+
+def make_web3_list_for_chain_id(chain_id: int, rpc_endpoint_override: Optional[str] = None) -> list[Web3]:
+    """Given a chain id, creates a list of web3 properly configured.
+
+    If the override is specified, makes sure that it's the first one in the list.
+    """
+    options = list(CHAIN_ID_TO_RPC_LIST[chain_id])
+    if rpc_endpoint_override:
+        if rpc_endpoint_override in options:
+            options.remove(rpc_endpoint_override)
+        options.insert(0, rpc_endpoint_override)
+    return [make_complete_web3(rpc) for rpc in options]

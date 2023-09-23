@@ -9,8 +9,9 @@ from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
 from utils.keys import deobfuscate_string
-from web3_client.client import ChainVrfClient
-from web3_client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id, CHAIN_ID_TO_MAX_GAS
+from web3_client.client import ChainVrfClient, MultisendChainVrfClient
+from web3_client.endpoints import CHAIN_ID_TO_RPC, make_web3_for_chain_id, CHAIN_ID_TO_MAX_GAS, \
+    make_web3_list_for_chain_id
 
 
 class Config(object):
@@ -61,3 +62,10 @@ class Config(object):
                               self.account,
                               self.vrf_address,
                               CHAIN_ID_TO_MAX_GAS[self.chain_id])
+
+    def create_multisend_client(self) -> MultisendChainVrfClient:
+        return MultisendChainVrfClient(
+            make_web3_list_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
+            self.account,
+            self.vrf_address,
+            CHAIN_ID_TO_MAX_GAS[self.chain_id])

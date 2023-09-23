@@ -1,3 +1,6 @@
+import concurrent
+import time
+from concurrent.futures import ThreadPoolExecutor, Future
 from typing import TypedDict, Optional
 
 import web3.logs
@@ -159,3 +162,51 @@ class ChainVrfClient(ChainClient):
         cf = self.vrf_contract.functions.fulfillRandomWords(request_id, randomness, rc)
         tx = self.build_contract_tx(cf)
         return self.sign_and_send_tx(tx)
+
+
+class MultisendChainVrfClient(ChainVrfClient):
+    """VRF client that sends transactions to multiple RPC endpoints simultaneously.
+
+    Imported from joepegs mint bot race client, still WIP.
+    This is most important for Avalanche, but maybe we can use it for Base as well.
+    """
+    def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: int):
+        super().__init__(providers[0], account, address, max_gas_price_in_gwei)
+        self.pool = ThreadPoolExecutor(max_workers=10)
+        self.providers = providers
+        self.send_timeout_sec = .5
+
+    def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment) -> Optional[HexStr]:
+        """Fulfill a randomness request."""
+        cf = self.vrf_contract.functions.fulfillRandomWords(request_id, randomness, rc)
+        tx = self.build_contract_tx(cf)
+        return self.sign_and_multisend_tx(tx)
+
+    def sign_and_multisend_tx(self, tx: TxParams) -> HexStr:
+        """Sign a transaction and sends it simultaneously via multiple providers."""
+        signed_tx = self.sign_tx(tx)
+        tx_hash = Web3.to_hex(signed_tx.hash)
+
+        tx_futures: list[Future[HexBytes]] = []
+        start = time.time()
+
+        for client in self.providers:
+            tx_f = self.pool.submit(client.eth.send_raw_transaction, signed_tx.rawTransaction)
+            tx_futures.append(tx_f)
+            # Perhaps we should move nonce handling here? That's where it is in other code we use.
+
+        # We only want to wait a limited amount of time for the TX to get sent.
+        # This may cause some of the slower providers to fail. It's no big
+        # deal, the earlier ones will have picked it up.
+        done, timed_out = concurrent.futures.wait(tx_futures, timeout=self.send_timeout_sec)
+        took = round(time.time() - start, 3)
+        accepted = [x for x in done if x.exception() is None]
+        print(f'Sent {len(tx_futures)} requests in {took};'
+              f' {len(done)} done  {len(accepted)} accepted {len(timed_out)} timed out')
+
+        if not accepted and done:
+            # Something is fundamentally screwy; we should always have some TX accepted.
+            # If none were accepted, surface the exception for debugging.
+            raise list(done)[0].exception()
+
+        return tx_hash
