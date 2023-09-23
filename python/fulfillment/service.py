@@ -90,6 +90,8 @@ class Fulfiller(object):
             except Exception as e:
                 if 'Client Error' in str(e) and 'goerli.base' in str(e):
                     print('suppressing spurious transient base testnet error')
+                elif 'after last accepted block' in str(e):
+                    print('suppressing spurious transient log fetch error')
                 else:
                     traceback.print_exc()
                     send_hook(self.alert_url, e)
