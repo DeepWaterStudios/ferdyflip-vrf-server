@@ -22,7 +22,7 @@ def main(_: list[str]):
     # Not strictly necessary but I had planned to run watchdog tasks. Leaving it in for later.
     executor = ThreadPoolExecutor()
 
-    client = config.create_client()
+    client = config.create_multisend_client()
     indexer = Fulfiller(client, config.alert_hook_url, config.fulfillment_hook_url,
                         config.delay_blocks, config.poll_delay)
 
