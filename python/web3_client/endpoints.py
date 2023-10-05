@@ -70,7 +70,7 @@ CHAIN_ID_TO_MAX_GAS = {
     # Base Testnet
     84531: 2,
     # Avax Mainnet
-    43114: 40,
+    43114: 100,
     # Avax testnet
     43113: 40,
 }
