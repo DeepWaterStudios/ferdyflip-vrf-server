@@ -49,6 +49,8 @@ class Config(object):
         self.rpc_endpoint = self.config.get('RPC_ENDPOINT', None)
         self.poll_delay = float(self.config.get('POLL_DELAY', 1.5))
 
+        self.max_gas = int(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
+
     @property
     def private_key(self) -> str:
         return deobfuscate_string(self.obfuscated_key)
@@ -61,7 +63,7 @@ class Config(object):
         return ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
                               self.account,
                               self.vrf_address,
-                              CHAIN_ID_TO_MAX_GAS[self.chain_id])
+                              self.max_gas)
 
     def create_multisend_client(self) -> MultisendChainVrfClient:
         return MultisendChainVrfClient(
