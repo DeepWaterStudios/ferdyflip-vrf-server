@@ -70,4 +70,4 @@ class Config(object):
             make_web3_list_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
             self.account,
             self.vrf_address,
-            CHAIN_ID_TO_MAX_GAS[self.chain_id])
+            self.max_gas)
