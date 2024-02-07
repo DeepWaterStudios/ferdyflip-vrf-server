@@ -61,6 +61,12 @@ CHAIN_ID_TO_RPC_LIST = {
         'https://rpc.ankr.com/avalanche_fuji',
         'https://avalanche-fuji.blockpi.network/v1/rpc/public',
     ],
+    # Mantle
+    5000: [
+        'https://rpc.mantle.xyz',
+        'https://rpc.ankr.com/mantle',
+        'https://mantle-mainnet.public.blastapi.io',
+    ],
 }
 
 # Every supported chain needs a mapping from chain id to max gas in gwei.
@@ -73,6 +79,8 @@ CHAIN_ID_TO_MAX_GAS = {
     43114: 100,
     # Avax testnet
     43113: 40,
+    # Mantle
+    5000: .06,
 }
 
 
