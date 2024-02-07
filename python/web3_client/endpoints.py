@@ -31,6 +31,8 @@ CHAIN_ID_TO_RPC = {
     43114: 'https://api.avax.network/ext/bc/C/rpc',
     # Avax testnet
     43113: 'https://api.avax-test.network/ext/bc/C/rpc',
+    # Mantle
+    5000: 'https://rpc.mantle.xyz',
 }
 
 CHAIN_ID_TO_RPC_LIST = {
