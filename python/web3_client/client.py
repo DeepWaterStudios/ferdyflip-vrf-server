@@ -24,7 +24,7 @@ class ChainClient(object):
     These settings might need to be modified per chain? Fine for now.
     """
 
-    def __init__(self, w3: Web3, account: LocalAccount, max_gas_price_in_gwei: int):
+    def __init__(self, w3: Web3, account: LocalAccount, max_gas_price_in_gwei: float):
         self.w3 = w3
         self.account = account
 
@@ -39,14 +39,24 @@ class ChainClient(object):
 
     def build_base_tx(self) -> TxParams:
         """Build a basic transaction."""
-        tx: TxParams = {
-            'chainId': self.chain_id,
-            'type': 0x2,
-            'maxFeePerGas': Web3.to_wei(self.max_gas_price_in_gwei, 'gwei'),
-            'maxPriorityFeePerGas': Web3.to_wei(self.priority_fee_in_gwei, 'gwei'),
-            'gas': self.gas_limit,
-            'nonce': self.next_nonce(),
-        }
+        if self.chain_id == 5000:
+            # Special casing for mantle, for now.
+            tx: TxParams = {
+                'chainId': self.chain_id,
+                # 'type': 0x0,
+                'gasPrice': Web3.to_wei(self.max_gas_price_in_gwei, 'gwei'),
+                'gas': self.gas_limit,
+                'nonce': self.next_nonce(),
+            }
+        else:
+            tx: TxParams = {
+                'chainId': self.chain_id,
+                'type': 0x2,
+                'maxFeePerGas': Web3.to_wei(self.max_gas_price_in_gwei, 'gwei'),
+                'maxPriorityFeePerGas': Web3.to_wei(self.priority_fee_in_gwei, 'gwei'),
+                'gas': self.gas_limit,
+                'nonce': self.next_nonce(),
+            }
         return tx
 
     def build_contract_tx(self, contract_function: ContractFunction) -> TxParams:
@@ -118,7 +128,7 @@ class ChainVrfClient(ChainClient):
     value when tx are in flight.
     """
 
-    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: int):
+    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: float):
         super().__init__(w3, account, max_gas_price_in_gwei)
         self.vrf_contract = self.contract(address, VRF_ABI)
         self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
@@ -170,7 +180,9 @@ class MultisendChainVrfClient(ChainVrfClient):
     Imported from joepegs mint bot race client, still WIP.
     This is most important for Avalanche, but maybe we can use it for Base as well.
     """
-    def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: int):
+
+    def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress,
+                 max_gas_price_in_gwei: int):
         super().__init__(providers[0], account, address, max_gas_price_in_gwei)
         self.pool = ThreadPoolExecutor(max_workers=10)
         self.providers = providers

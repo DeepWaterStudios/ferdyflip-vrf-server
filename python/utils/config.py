@@ -49,7 +49,7 @@ class Config(object):
         self.rpc_endpoint = self.config.get('RPC_ENDPOINT', None)
         self.poll_delay = float(self.config.get('POLL_DELAY', 1.5))
 
-        self.max_gas = int(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
+        self.max_gas = float(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
 
     @property
     def private_key(self) -> str:
