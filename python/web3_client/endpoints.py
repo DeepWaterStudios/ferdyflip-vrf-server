@@ -33,6 +33,8 @@ CHAIN_ID_TO_RPC = {
     43113: 'https://api.avax-test.network/ext/bc/C/rpc',
     # Mantle
     5000: 'https://rpc.mantle.xyz',
+    # MEVM devnet
+    336: 'https://mevm.devnet.m1.movementlabs.xyz/v1',
 }
 
 CHAIN_ID_TO_RPC_LIST = {
@@ -69,6 +71,10 @@ CHAIN_ID_TO_RPC_LIST = {
         'https://rpc.ankr.com/mantle',
         'https://mantle-mainnet.public.blastapi.io',
     ],
+    # MEVM devnet
+    336: [
+        'https://mevm.devnet.m1.movementlabs.xyz/v1',
+        ],
 }
 
 # Every supported chain needs a mapping from chain id to max gas in gwei.
@@ -83,6 +89,8 @@ CHAIN_ID_TO_MAX_GAS = {
     43113: 40,
     # Mantle
     5000: .06,
+    # MEVM devnet
+    336: 1,
 }
 
 
