@@ -74,7 +74,7 @@ class ChainClient(object):
 
     def send_signed_tx(self, signed_tx: SignedTransaction) -> HexStr:
         """Send a signed transaction and return the tx hash."""
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.raw_transaction)
         return self.w3.to_hex(tx_hash)
 
     def sign_and_send_tx(self, tx: TxParams) -> HexStr:
@@ -133,8 +133,8 @@ class ChainVrfClient(ChainClient):
         self.vrf_contract = self.contract(address, VRF_ABI)
         self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
         self.fulfilled_event: ContractEvent = self.vrf_contract.events.RandomWordsFulfilled()
-        self.requested_topic = HexBytes(event_abi_to_log_topic(self.requested_event.abi))
-        self.fulfilled_topic = HexBytes(event_abi_to_log_topic(self.fulfilled_event.abi))
+        self.requested_topic = Web3.to_hex(event_abi_to_log_topic(self.requested_event.abi))
+        self.fulfilled_topic = Web3.to_hex(event_abi_to_log_topic(self.fulfilled_event.abi))
 
         self._nonce = Nonce(-1)
         self.refresh_nonce()
@@ -159,7 +159,7 @@ class ChainVrfClient(ChainClient):
             'fromBlock': from_block,
             'toBlock': to_block,
             'address': self.vrf_contract.address,
-            'topics': [[HexStr(self.requested_topic.hex()), HexStr(self.fulfilled_topic.hex())]],
+            'topics': [[self.requested_topic, self.fulfilled_topic]],
         })
         requested_logs = [log for log in logs if log['topics'][0] == self.requested_topic]
         fulfilled_logs = [log for log in logs if log['topics'][0] == self.fulfilled_topic]
@@ -203,7 +203,7 @@ class MultisendChainVrfClient(ChainVrfClient):
         start = time.time()
 
         for client in self.providers:
-            tx_f = self.pool.submit(client.eth.send_raw_transaction, signed_tx.rawTransaction)
+            tx_f = self.pool.submit(client.eth.send_raw_transaction, signed_tx.raw_transaction)
             tx_futures.append(tx_f)
             # Perhaps we should move nonce handling here? That's where it is in other code we use.
 
