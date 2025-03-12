@@ -17,21 +17,15 @@ CHAIN_ID_TO_RPC = {
     5000: 'https://rpc.mantle.xyz',
     # MEVM devnet
     336: 'https://mevm.devnet.m1.movementlabs.xyz/v1',
+    # BTC L1
+    132008: 'https://rpc.bitcoinl1.net/main/evm/132008',
+    # Monad
+    10143: 'https://testnet-rpc.monad.xyz',
+    # MegaETH
+    6342: 'https://carrot.megaeth.com/rpc',
 }
 
 CHAIN_ID_TO_RPC_LIST = {
-    # Base Mainnet
-    8453: [
-        'https://mainnet.base.org',
-        'https://base-mainnet.public.blastapi.io',
-        'https://base.publicnode.com',
-    ],
-    # Base Testnet
-    84531: [
-        'https://goerli.base.org',
-        'https://base-goerli.publicnode.com',
-        'https://base-goerli.blockpi.network/v1/rpc/public',
-    ],
     # Avax Mainnet
     43114: [
         'https://api.avax.network/ext/bc/C/rpc',
@@ -47,16 +41,15 @@ CHAIN_ID_TO_RPC_LIST = {
         'https://rpc.ankr.com/avalanche_fuji',
         'https://avalanche-fuji.blockpi.network/v1/rpc/public',
     ],
-    # Mantle
-    5000: [
-        'https://rpc.mantle.xyz',
-        'https://rpc.ankr.com/mantle',
-        'https://mantle-mainnet.public.blastapi.io',
+    132008: [
+        'https://rpc.bitcoinl1.net/main/evm/132008',
     ],
-    # MEVM devnet
-    336: [
-        'https://mevm.devnet.m1.movementlabs.xyz/v1',
-        ],
+    10143: [
+        'https://testnet-rpc.monad.xyz',
+    ],
+    6342: [
+        'https://carrot.megaeth.com/rpc',
+    ],
 }
 
 # Every supported chain needs a mapping from chain id to max gas in gwei.
@@ -69,10 +62,12 @@ CHAIN_ID_TO_MAX_GAS = {
     43114: 100,
     # Avax testnet
     43113: 40,
-    # Mantle
-    5000: .06,
-    # MEVM devnet
-    336: 1,
+    # BTC L1
+    132008: .002,
+    # Monad
+    10143: 60,
+    # MegaETH
+    6342: .003,
 }
 
 
