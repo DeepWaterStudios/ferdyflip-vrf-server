@@ -182,7 +182,7 @@ class MultisendChainVrfClient(ChainVrfClient):
     """
 
     def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress,
-                 max_gas_price_in_gwei: int):
+                 max_gas_price_in_gwei: float):
         super().__init__(providers[0], account, address, max_gas_price_in_gwei)
         self.pool = ThreadPoolExecutor(max_workers=10)
         self.providers = providers
