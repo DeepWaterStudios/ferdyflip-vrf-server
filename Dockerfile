@@ -5,6 +5,6 @@ COPY python/requirements.txt .
 RUN pip install -r requirements.txt
 
 COPY python  .
-RUN rm /server/.env*
+# RUN rm /server/.env*
 
 CMD ["python", "-u", "server.py"]
