@@ -28,7 +28,7 @@ def main(_: list[str]):
 
     # For buffer, go back 2K blocks. This shouldn't take any time to catch up. The 1900 is because there's a buffer
     # for the -50 block lookback.
-    last_block = min(client.get_latest_block_number() - 1_900, 1)
+    last_block = max(client.get_latest_block_number() - 1_900, 1)
     # Start scanning.
     executor.submit(indexer.start_scan, last_block)
 
