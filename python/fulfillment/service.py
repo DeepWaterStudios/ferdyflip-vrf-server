@@ -54,7 +54,7 @@ class Fulfiller(object):
 
                 # Base testnet seemed kind of flaky in terms of supplying events accurately, so I shifted to fetching
                 # the last 50 blocks and using a local cache of fulfilled IDs to prevent duplicate fulfills.
-                scan_block = last_block - 50
+                scan_block = max(last_block - 50, 1)
 
                 # Account for more weirdness. Can only scan for 2k blocks, but the start block might have been messed
                 # up when it was fetched from Base.
