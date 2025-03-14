@@ -51,6 +51,8 @@ class Config(object):
 
         self.max_gas = float(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
 
+        self.use_vrf_v25 = bool(self.config.get('USE_VRF_V25', False))
+
     @property
     def private_key(self) -> str:
         return deobfuscate_string(self.obfuscated_key)
@@ -63,11 +65,13 @@ class Config(object):
         return ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
                               self.account,
                               self.vrf_address,
-                              self.max_gas)
+                              self.max_gas,
+                              use_vrf_v25=self.use_vrf_v25)
 
     def create_multisend_client(self) -> MultisendChainVrfClient:
         return MultisendChainVrfClient(
             make_web3_list_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
             self.account,
             self.vrf_address,
-            self.max_gas)
+            self.max_gas,
+            use_vrf_v25=self.use_vrf_v25)

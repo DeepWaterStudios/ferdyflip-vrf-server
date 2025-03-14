@@ -11,3 +11,4 @@ def load_abi_file(filename: str) -> str:
 
 # Load ABIs statically loaded into memory at startup.
 VRF_ABI = load_abi_file('ferdy_vrf_coordinator.abi')
+VRF_V25_ABI = load_abi_file('ferdy_vrf_coordinator_v25.abi')

@@ -15,7 +15,7 @@ from web3.contract import Contract
 from web3.contract.contract import ContractFunction, ContractEvent
 from web3.types import Nonce, TxParams, TxReceipt, EventData
 
-from web3_client.abi import VRF_ABI
+from web3_client.abi import VRF_ABI, VRF_V25_ABI
 
 
 class ChainClient(object):
@@ -128,9 +128,9 @@ class ChainVrfClient(ChainClient):
     value when tx are in flight.
     """
 
-    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: float):
+    def __init__(self, w3: Web3, account: LocalAccount, address: ChecksumAddress, max_gas_price_in_gwei: float,  use_vrf_v25: bool = False):
         super().__init__(w3, account, max_gas_price_in_gwei)
-        self.vrf_contract = self.contract(address, VRF_ABI)
+        self.vrf_contract = self.contract(address, VRF_V25_ABI if use_vrf_v25 else VRF_ABI)
         self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
         self.fulfilled_event: ContractEvent = self.vrf_contract.events.RandomWordsFulfilled()
         self.requested_topic = Web3.to_hex(event_abi_to_log_topic(self.requested_event.abi))
@@ -182,8 +182,8 @@ class MultisendChainVrfClient(ChainVrfClient):
     """
 
     def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress,
-                 max_gas_price_in_gwei: float):
-        super().__init__(providers[0], account, address, max_gas_price_in_gwei)
+                 max_gas_price_in_gwei: float,  use_vrf_v25: bool = False):
+        super().__init__(providers[0], account, address, max_gas_price_in_gwei, use_vrf_v25)
         self.pool = ThreadPoolExecutor(max_workers=10)
         self.providers = providers
         self.send_timeout_sec = .5
