@@ -133,8 +133,8 @@ class ChainVrfClient(ChainClient):
         self.vrf_contract = self.contract(address, VRF_V25_ABI if use_vrf_v25 else VRF_ABI)
         self.requested_event: ContractEvent = self.vrf_contract.events.RandomWordsRequested()
         self.fulfilled_event: ContractEvent = self.vrf_contract.events.RandomWordsFulfilled()
-        self.requested_topic = Web3.to_hex(event_abi_to_log_topic(self.requested_event.abi))
-        self.fulfilled_topic = Web3.to_hex(event_abi_to_log_topic(self.fulfilled_event.abi))
+        self.requested_topic = event_abi_to_log_topic(self.requested_event.abi)
+        self.fulfilled_topic = event_abi_to_log_topic(self.fulfilled_event.abi)
 
         self._nonce = Nonce(-1)
         self.refresh_nonce()
