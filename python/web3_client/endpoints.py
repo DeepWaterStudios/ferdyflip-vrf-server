@@ -29,11 +29,8 @@ CHAIN_ID_TO_RPC_LIST = {
     # Avax Mainnet
     43114: [
         'https://api.avax.network/ext/bc/C/rpc',
-        'https://rpc.ankr.com/avalanche',
-        'https://avalanche.blockpi.network/v1/rpc/public',
         'https://avalanche-c-chain.publicnode.com',
         'https://ava-mainnet.public.blastapi.io/ext/bc/C/rpc',
-        'https://1rpc.io/avax/c',
     ],
     # Avax testnet
     43113: [
