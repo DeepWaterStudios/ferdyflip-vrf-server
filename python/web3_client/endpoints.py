@@ -10,7 +10,7 @@ CHAIN_ID_TO_RPC = {
     # Base Testnet
     84531: 'https://goerli.base.org',
     # Avax Mainnet
-    43114: 'https://api.avax.network/ext/bc/C/rpc',
+    43114: 'https://endpoints.omniatech.io/v1/avax/mainnet/public',
     # Avax testnet
     43113: 'https://api.avax-test.network/ext/bc/C/rpc',
     # Mantle
@@ -28,9 +28,11 @@ CHAIN_ID_TO_RPC = {
 CHAIN_ID_TO_RPC_LIST = {
     # Avax Mainnet
     43114: [
+        'https://endpoints.omniatech.io/v1/avax/mainnet/public',
+        'https://avax.meowrpc.com',
+        'https://avalanche.drpc.org',
+        'https://avalanche-c-chain-rpc.publicnode.com',
         'https://api.avax.network/ext/bc/C/rpc',
-        'https://avalanche-c-chain.publicnode.com',
-        'https://ava-mainnet.public.blastapi.io/ext/bc/C/rpc',
     ],
     # Avax testnet
     43113: [
