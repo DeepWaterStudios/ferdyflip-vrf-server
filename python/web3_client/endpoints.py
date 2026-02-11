@@ -23,6 +23,8 @@ CHAIN_ID_TO_RPC = {
     10143: 'https://testnet-rpc.monad.xyz',
     # MegaETH
     6342: 'https://carrot.megaeth.com/rpc',
+    # MegaETH Testnet
+    6343: 'https://carrot.megaeth.com/rpc',
 }
 
 CHAIN_ID_TO_RPC_LIST = {
@@ -49,6 +51,9 @@ CHAIN_ID_TO_RPC_LIST = {
     6342: [
         'https://carrot.megaeth.com/rpc',
     ],
+    6343: [
+        'https://carrot.megaeth.com/rpc',
+    ],
 }
 
 # Every supported chain needs a mapping from chain id to max gas in gwei.
@@ -67,6 +72,8 @@ CHAIN_ID_TO_MAX_GAS = {
     10143: 60,
     # MegaETH
     6342: .003,
+    # MegaETH Testnet
+    6343: .003,
 }
 
 
