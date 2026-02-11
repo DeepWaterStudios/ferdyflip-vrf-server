@@ -21,8 +21,8 @@ CHAIN_ID_TO_RPC = {
     132008: 'https://rpc.bitcoinl1.net/main/evm/132008',
     # Monad
     10143: 'https://testnet-rpc.monad.xyz',
-    # MegaETH
-    6342: 'https://carrot.megaeth.com/rpc',
+    # MegaETH Mainnet
+    4326: "https://mainnet.megaeth.com/rpc",
     # MegaETH Testnet
     6343: 'https://carrot.megaeth.com/rpc',
 }
@@ -48,8 +48,10 @@ CHAIN_ID_TO_RPC_LIST = {
     10143: [
         'https://testnet-rpc.monad.xyz',
     ],
-    6342: [
-        'https://carrot.megaeth.com/rpc',
+    4326: [
+        "https://mainnet.megaeth.com/rpc",
+        "https://megaeth.drpc.org",
+        "https://rpc-megaeth-mainnet.globalstake.io",
     ],
     6343: [
         'https://carrot.megaeth.com/rpc',
@@ -70,8 +72,8 @@ CHAIN_ID_TO_MAX_GAS = {
     132008: .002,
     # Monad
     10143: 60,
-    # MegaETH
-    6342: .003,
+    # MegaETH Mainnet
+    4326: .003,
     # MegaETH Testnet
     6343: .003,
 }

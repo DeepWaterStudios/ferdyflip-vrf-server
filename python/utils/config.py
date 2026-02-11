@@ -47,6 +47,7 @@ class Config(object):
             raise ValueError('Expected VRF_ADDRESS to resolve to an address') from ex
 
         self.rpc_endpoint = self.config.get('RPC_ENDPOINT', None)
+        self.wss_endpoint = self.config.get('WSS_ENDPOINT', None)
         self.poll_delay = float(self.config.get('POLL_DELAY', 1.5))
 
         self.max_gas = float(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
@@ -60,13 +61,6 @@ class Config(object):
     @property
     def account(self) -> LocalAccount:
         return Account.from_key(self.private_key)
-
-    def create_client(self) -> ChainVrfClient:
-        return ChainVrfClient(make_web3_for_chain_id(self.chain_id, rpc_endpoint_override=self.rpc_endpoint),
-                              self.account,
-                              self.vrf_address,
-                              self.max_gas,
-                              use_vrf_v25=self.use_vrf_v25)
 
     def create_multisend_client(self) -> MultisendChainVrfClient:
         return MultisendChainVrfClient(

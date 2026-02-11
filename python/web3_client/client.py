@@ -30,7 +30,7 @@ class ChainClient(object):
 
         self.chain_id = self.w3.eth.chain_id
         self.max_gas_price_in_gwei = max_gas_price_in_gwei
-        self.priority_fee_in_gwei = 0.001
+        self.priority_fee_in_gwei = 0.00001
         self.gas_limit = 1_500_000
 
     ####################
