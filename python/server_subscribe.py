@@ -25,7 +25,8 @@ def main(_: list[str]):
     client = config.create_multisend_client()
     fulfiller = SubscribeFulfiller(client, config.wss_endpoint,
                                    config.alert_hook_url, config.fulfillment_hook_url,
-                                   config.delay_blocks)
+                                   config.delay_blocks,
+                                   use_pending=config.use_pending)
 
     asyncio.run(fulfiller.start())
 

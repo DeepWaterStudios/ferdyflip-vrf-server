@@ -182,17 +182,81 @@ class MultisendChainVrfClient(ChainVrfClient):
     """
 
     def __init__(self, providers: list[Web3], account: LocalAccount, address: ChecksumAddress,
-                 max_gas_price_in_gwei: float,  use_vrf_v25: bool = False):
+                 max_gas_price_in_gwei: float, use_vrf_v25: bool = False,
+                 use_realtime: bool = False):
         super().__init__(providers[0], account, address, max_gas_price_in_gwei, use_vrf_v25)
         self.pool = ThreadPoolExecutor(max_workers=10)
         self.providers = providers
         self.send_timeout_sec = .5
+        self._use_realtime = use_realtime
+        self._realtime_timeout_sec = 10.0
+        self._cached_receipts: dict[HexStr, TxReceipt] = {}
 
     def fulfill_random_words(self, request_id: int, randomness: int, rc: RequestCommitment) -> Optional[HexStr]:
         """Fulfill a randomness request."""
         cf = self.vrf_contract.functions.fulfillRandomWords(request_id, randomness, rc)
         tx = self.build_contract_tx(cf)
+        if self._use_realtime:
+            return self.sign_and_multisend_realtime_tx(tx)
         return self.sign_and_multisend_tx(tx)
+
+    def get_receipt_by_hash(self, tx_hash: HexStr) -> TxReceipt:
+        """Check the realtime receipt cache first, then fall back to polling."""
+        cached = self._cached_receipts.pop(tx_hash, None)
+        if cached is not None:
+            return cached
+        return super().get_receipt_by_hash(tx_hash)
+
+    def _send_realtime(self, client: Web3, raw_tx: bytes) -> TxReceipt:
+        """Send a transaction via realtime_sendRawTransaction and return the receipt.
+
+        The realtime RPC method blocks until the transaction is confirmed and returns
+        the receipt inline, so no separate polling is needed.
+        """
+        # TODO: this seems like a shitty implementation. can we do something better by extending web3py
+        raw_hex = Web3.to_hex(raw_tx)
+        response = client.provider.make_request("realtime_sendRawTransaction", [raw_hex])
+        if 'error' in response:
+            raise Exception(f"realtime_sendRawTransaction error: {response['error']}")
+        result = response['result']
+        receipt: TxReceipt = {
+            **result,
+            'status': int(result['status'], 16),
+            'blockNumber': int(result['blockNumber'], 16),
+            'transactionHash': HexBytes(result['transactionHash']),
+            'transactionIndex': int(result.get('transactionIndex', '0x0'), 16),
+            'gasUsed': int(result.get('gasUsed', '0x0'), 16),
+            'cumulativeGasUsed': int(result.get('cumulativeGasUsed', '0x0'), 16),
+        }
+        return receipt
+
+    def sign_and_multisend_realtime_tx(self, tx: TxParams) -> HexStr:
+        """Sign a transaction and send it via realtime_sendRawTransaction to all providers."""
+        signed_tx = self.sign_tx(tx)
+        tx_hash = Web3.to_hex(signed_tx.hash)
+
+        tx_futures: list[Future[TxReceipt]] = []
+        start = time.time()
+
+        for client in self.providers:
+            tx_f = self.pool.submit(self._send_realtime, client, signed_tx.raw_transaction)
+            tx_futures.append(tx_f)
+
+        done, timed_out = concurrent.futures.wait(
+            tx_futures, timeout=self._realtime_timeout_sec)
+        took = round(time.time() - start, 3)
+        accepted = [x for x in done if x.exception() is None]
+        print(f'Realtime sent {len(tx_futures)} requests in {took}s;'
+              f' {len(done)} done  {len(accepted)} accepted {len(timed_out)} timed out')
+
+        if not accepted and done:
+            raise list(done)[0].exception()
+
+        # Cache the first successful receipt for get_receipt_by_hash
+        if accepted:
+            self._cached_receipts[tx_hash] = accepted[0].result()
+
+        return tx_hash
 
     def sign_and_multisend_tx(self, tx: TxParams) -> HexStr:
         """Sign a transaction and sends it simultaneously via multiple providers."""

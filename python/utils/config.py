@@ -53,6 +53,8 @@ class Config(object):
         self.max_gas = float(self.config.get('MAX_GAS', CHAIN_ID_TO_MAX_GAS[self.chain_id]))
 
         self.use_vrf_v25 = self.config.get('USE_VRF_V25', '').upper() == 'TRUE'
+        self.use_pending = self.config.get('USE_PENDING', '').upper() == 'TRUE'
+        self.use_realtime = self.config.get('USE_REALTIME', '').upper() == 'TRUE'
 
     @property
     def private_key(self) -> str:
@@ -68,4 +70,5 @@ class Config(object):
             self.account,
             self.vrf_address,
             self.max_gas,
-            use_vrf_v25=self.use_vrf_v25)
+            use_vrf_v25=self.use_vrf_v25,
+            use_realtime=self.use_realtime)

@@ -3,13 +3,15 @@ import secrets
 import time
 import traceback
 from concurrent.futures import ThreadPoolExecutor
-from typing import Optional
+from typing import Any, Optional
 
 import web3.logs
 from web3 import AsyncWeb3
 from web3.providers import WebSocketProvider
 from web3.types import EventData
+from web3.utils.subscriptions import LogsSubscription
 
+from fulfillment.ranged_logs_subscription import RangedLogsSubscription
 from utils.discord import send_hook
 from web3_client.client import MultisendChainVrfClient
 
@@ -23,12 +25,13 @@ class SubscribeFulfiller(object):
 
     def __init__(self, client: MultisendChainVrfClient, wss_endpoint: str,
                  alert_url: Optional[str], fulfillment_url: Optional[str],
-                 delay_blocks: int):
+                 delay_blocks: int, use_pending: bool = False):
         self.client = client
         self.wss_endpoint = wss_endpoint
         self.alert_url = alert_url
         self.fulfillment_url = fulfillment_url
         self.delay_blocks = delay_blocks
+        self.use_pending = use_pending
 
         self.executor = ThreadPoolExecutor(max_workers=5)
 
@@ -65,29 +68,47 @@ class SubscribeFulfiller(object):
             await self._backfill()
 
             # Subscribe to both requested and fulfilled events from the VRF contract.
-            sub_id = await ws_w3.eth.subscribe("logs", {
-                "address": self.vrf_address,
-                "topics": [[self.requested_topic, self.fulfilled_topic]],
-            })
-            print(f"[subscribe] Subscribed: {sub_id}")
+            if self.use_pending:
+                sub = RangedLogsSubscription(
+                    address=self.vrf_address,
+                    topics=[[self.requested_topic, self.fulfilled_topic]],
+                    from_block="pending",
+                    to_block="pending",
+                    handler=self._on_log,
+                    label="vrf-pending",
+                )
+            else:
+                sub = LogsSubscription(
+                    address=self.vrf_address,
+                    topics=[[self.requested_topic, self.fulfilled_topic]],
+                    handler=self._on_log,
+                    label="vrf",
+                )
 
-            async for msg in ws_w3.socket.process_subscriptions():
-                log = msg["result"]
-                topic0 = log["topics"][0]
+            await ws_w3.subscription_manager.subscribe(sub)
+            print(f"[subscribe] Subscribed: {sub.id}"
+                  f" (pending={self.use_pending})")
 
-                if topic0 == self.requested_topic:
-                    events = self.requested_event.process_receipt(
-                        {"logs": [log]}, errors=web3.logs.STRICT)
-                    for event in events:
-                        self._handle_requested_event(event)
+            await ws_w3.subscription_manager.handle_subscriptions()
 
-                elif topic0 == self.fulfilled_topic:
-                    events = self.fulfilled_event.process_receipt(
-                        {"logs": [log]}, errors=web3.logs.STRICT)
-                    for event in events:
-                        request_id = event['args']['requestId']
-                        self.fulfilled_ids.add(request_id)
-                        print(f"[subscribe] Saw fulfillment for request {request_id}")
+    async def _on_log(self, ctx: Any) -> None:
+        """Handler for incoming subscription log events."""
+        log = ctx.result
+        topic0 = log["topics"][0]
+
+        if topic0 == self.requested_topic:
+            events = self.requested_event.process_receipt(
+                {"logs": [log]}, errors=web3.logs.STRICT)
+            for event in events:
+                self._handle_requested_event(event)
+
+        elif topic0 == self.fulfilled_topic:
+            events = self.fulfilled_event.process_receipt(
+                {"logs": [log]}, errors=web3.logs.STRICT)
+            for event in events:
+                request_id = event['args']['requestId']
+                self.fulfilled_ids.add(request_id)
+                print(f"[subscribe] Saw fulfillment for request {request_id}")
 
     async def _backfill(self):
         """Poll recent blocks via the HTTP client to catch events missed while disconnected."""
